@@ -1,0 +1,10 @@
+{
+  "maxagemonths": "12",
+  "url": "https://www.youtube.com/@channelid",
+  "instance": "mastodon.social",
+  "accesstoken": "secret",
+  "prefix": " hat ein neues Video veröffentlicht: "
+}
+
+
+// replacce the values and copy this to "config.json"
