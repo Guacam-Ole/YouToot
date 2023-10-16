@@ -1,12 +1,8 @@
-﻿using System.Runtime.Remoting;
-using System.Text.Json.Serialization;
-
-namespace YouToot
+﻿namespace YouToot
 {
-    [Obsolete]
-    public class TootState
+    public class TubeState
     {
-        [JsonPropertyName("id")]
+        public int Id { get; set; }
         public string MastodonId { get; set; }
         public string YouTubeId { get; set; }
         public DateTime Tooted { get; set; }

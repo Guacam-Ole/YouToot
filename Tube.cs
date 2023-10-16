@@ -17,10 +17,10 @@ namespace YouToot
             _logger = logger;
         }
 
-        private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, string? sinceId, int? maxNumberOfVideos)
+        private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, List<string> sinceIds, int? maxNumberOfVideos)
         {
 
-            _logger.LogDebug("Getting Videos from channel '{url}'. Max number: '{max}', since id:'{id}'", channelUrl, maxNumberOfVideos, sinceId);
+            _logger.LogDebug("Getting Videos from channel '{url}'. Max number: '{max}', since id:'{id}'", channelUrl, maxNumberOfVideos, sinceIds);
 
             int itemCount = 0;
             var ytChannel = await _youtubeClient.Channels.GetByHandleAsync(channelUrl);
@@ -28,27 +28,35 @@ namespace YouToot
 
             await foreach (var upload in _youtubeClient.Channels.GetUploadsAsync(ytChannel.Id))
             {
-                if (sinceId != null && upload.Id == sinceId) return videos;
+                if (sinceIds != null && sinceIds.Contains(upload.Id)) return videos;
                 videos.Add(upload);
                 _logger.LogDebug("Added '{title}' with id {id} to list of Videos [{duration}]", upload.Title, upload.Id, upload.Duration);
                 itemCount++;
                 if (maxNumberOfVideos != null && itemCount >= maxNumberOfVideos) return videos;
             }
 
-            if (sinceId != null) throw new ArgumentException("No video with that Id exists. To prevent accidental spamming no videos will be tooted");
+            if (sinceIds != null) throw new ArgumentException("No video with that Id exists. To prevent accidental spamming no videos will be tooted");
             return videos;
         }
 
 
-        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(string channelUrl, string? sinceId, int? maxNumberOfVideos)
+        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(string channelUrl, List<string> sinceId, int? maxNumberOfVideos)
         {
-            var videos = new List<YoutubeExplode.Videos.Video>();
-            var playlistVideos = await GetVideosFromChannel(channelUrl, sinceId, maxNumberOfVideos);
-            foreach (var video in playlistVideos)
+            try
             {
-                videos.Add(await _youtubeClient.Videos.GetAsync(video.Id));
+                var videos = new List<YoutubeExplode.Videos.Video>();
+                var playlistVideos = await GetVideosFromChannel(channelUrl, sinceId, maxNumberOfVideos);
+                foreach (var video in playlistVideos)
+                {
+                    videos.Add(await _youtubeClient.Videos.GetAsync(video.Id));
+                }
+                return videos;
             }
-            return videos;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed retrieving Videos");
+                return new List<YoutubeExplode.Videos.Video>();
+            }
         }
     }
 

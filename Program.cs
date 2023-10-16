@@ -39,7 +39,7 @@ try
                     CallForHelp();
                     return;
                 }
-                await service.TootVideoSinceId(args[1]);
+                await service.TootVideoSinceId(new List<string> { args[1] });
                 break;
 
             default:

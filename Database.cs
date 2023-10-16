@@ -19,30 +19,36 @@ namespace YouToot
 
         public async Task Empty()
         {
-            var states = _liteDb.GetCollection<TootState>();
+            var states = _liteDb.GetCollection<TubeState>();
             await states.DeleteAllAsync();
             _logger.LogDebug("Emptied Collection");
         }
 
-        public async Task<TootState> GetLastToot()
+        public async Task<TubeState> GetLastToot()
         {
-            var states = _liteDb.GetCollection<TootState>();
+            var states = _liteDb.GetCollection<TubeState>();
             if (await states.CountAsync() == 0) return null;
             var newest = await states.MaxAsync(q => q.Tooted);
             var lastToot = await states.FindOneAsync(q => q.Tooted == newest);
             return lastToot;
         }
 
-        public async Task Add(TootState state)
+        public async Task<IEnumerable<TubeState>> GetSentToots() {
+            var states = _liteDb.GetCollection<TubeState>();
+            if (await states.CountAsync() == 0) return null;
+            return await states.FindAllAsync();
+        } 
+
+        public async Task Add(  TubeState state)
         {
-            var states = _liteDb.GetCollection<TootState>();
+            var states = _liteDb.GetCollection<TubeState>();
             await states.UpsertAsync(state);
             _logger.LogDebug("Added state");
         }
 
         public async Task RemoveOlderThan(DateTime maxAge)
         {
-            var states = _liteDb.GetCollection<TootState>();
+            var states = _liteDb.GetCollection<TubeState>();
             await states.DeleteManyAsync(q => q.Tooted < maxAge);
             _logger.LogDebug("Removed old entries");
         }
