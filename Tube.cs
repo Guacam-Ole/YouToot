@@ -59,8 +59,7 @@ namespace YouToot
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Failed retrieving Videos. Retries left: {retryCount}");
-                    Thread.Sleep(1000 * 10); // wait a few seconds
-                    retryCount--;
+                    Thread.Sleep(1000 * 30); // wait a few seconds
                 }
             }
             return new List<YoutubeExplode.Videos.Video>();
