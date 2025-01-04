@@ -1,10 +1,19 @@
-{
-  "maxagemonths": "12",
-  "url": "https://www.youtube.com/@channelid",
+{  
   "instance": "mastodon.social",
-  "accesstoken": "secret",
-  "prefix": " hat ein neues Video veröffentlicht: "
+  "accesstoken": "<token>",
+  
+  "Channels": [
+    {
+      "maxagemonths": "10",
+      "url": "https://www.youtube.com/@channelname",
+      "prefix": "new video here: \n\n"
+    },
+    {
+      "maxagemonths": "12",
+      "url": "https://www.youtube.com/@anotherchannel",
+      "prefix": "crazy stuff #awesome #clickbait"
+    }
+  ]
 }
-
 
 // replace the values and copy this to "config.json"
