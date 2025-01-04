@@ -36,13 +36,13 @@ namespace YouToot
             return videos;
         }
 
-        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(string channelUrl, List<string>? sinceId, int? maxNumberOfVideos)
+        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(Config.Channel channel, List<string>? sinceId, int? maxNumberOfVideos)
         {
             try
             {
                 var videos = new List<YoutubeExplode.Videos.Video>();
-                var playlistVideos = await GetVideosFromChannel(channelUrl, sinceId, maxNumberOfVideos);
-                _logger.LogDebug("retrieved {count} videos from channel '{url}' since '{since}'", playlistVideos.Count, channelUrl, sinceId);
+                var playlistVideos = await GetVideosFromChannel(channel.Url, sinceId, maxNumberOfVideos);
+                _logger.LogDebug("retrieved {count} videos from channel '{url}' since '{since}'", playlistVideos.Count, channel.Url, sinceId);
                 foreach (var video in playlistVideos)
                 {
                     videos.Add(await _youtubeClient.Videos.GetAsync(video.Id));

@@ -1,17 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
-
 using Newtonsoft.Json;
-
 using System.Text.RegularExpressions;
-
+using System.Threading.Channels;
 using YoutubeExplode.Videos;
 
 namespace YouToot
 {
     public class Service
     {
-        private const int _maxContentLength = 480;
-        private const int _maxNumberOfVideosOnSearch = 10;
+        private const int MaxContentLength = 480;
+        private const int MaxNumberOfVideosOnSearch = 10;
         private readonly ILogger<Service> _logger;
         private readonly Tube _tube;
         private readonly Database _database;
@@ -25,60 +23,71 @@ namespace YouToot
             _database = database;
             _toot = toot;
             var config = File.ReadAllText("./config.json");
-            _config = JsonConvert.DeserializeObject<Config>(config) ?? throw new FileNotFoundException("cannot read config");
+            _config = JsonConvert.DeserializeObject<Config>(config) ??
+                      throw new FileNotFoundException("cannot read config");
         }
 
         public async Task TootNewVIdeos()
         {
-            var sentToots = await _database.GetSentToots();
-            if (sentToots == null || !sentToots.Any())
+            foreach (var channel in _config.Channels)
             {
-                await TootLastVideos(1);  // First run. Toot the latest video
+                var sentToots = (await _database.GetSentTootsForChannel(channel.Url))?.ToList();
+                if (sentToots == null || !sentToots.Any())
+                {
+                    _logger.LogWarning("Found no configs for '{url}'. Sending last one", channel.Url);
+                    await TootLastVideos(channel, 1); // First run. Toot the latest video
+                }
+                else
+                {
+                    await TootVideoSinceId(channel, sentToots.Select(q => q.YouTubeId).ToList());
+                }
+
+                await _database.RemoveOlderThan(channel.Url, DateTime.Now.AddMonths(-channel.MaxAgeMonths));
             }
-            else
-            {
-                await TootVideoSinceId(sentToots.Select(q => q.YouTubeId).ToList());
-            }
-            await _database.RemoveOlderThan(DateTime.Now.AddMonths(-_config.MaxAgeMonths));
         }
 
-        public async Task TootLastVideos(int numberOfVideos)
+        private async Task TootLastVideos(Config.Channel channel, int numberOfVideos)
         {
-            var videos = await _tube.GetVideos(_config.Url, null, numberOfVideos);
-            await TootVideos(videos);
+            var videos = await _tube.GetVideos(channel, null, numberOfVideos);
+            await TootVideos(channel, videos);
         }
 
-        public async Task TootVideoSinceId(List<string> videoIds)
+        private async Task TootVideoSinceId(Config.Channel channel, List<string> videoIds)
         {
-            var videos = await _tube.GetVideos(_config.Url, videoIds, _maxNumberOfVideosOnSearch);
-            await TootVideos(videos);
+            var videos = await _tube.GetVideos(channel, videoIds, MaxNumberOfVideosOnSearch);
+            await TootVideos(channel, videos);
         }
 
-        private async Task TootVideos(List<Video> videos)
+        private async Task TootVideos(Config.Channel channel, List<Video> videos)
         {
             _logger.LogDebug("tooting {count} videos", videos.Count);
             foreach (var video in videos.OrderBy(q => q.UploadDate))
             {
                 try
                 {
-                    string content = $"{video.Author}{_config.Prefix}{video.Title}\n\n{video.Description}\n{video.Url}\n\n{GetHashTags(video.Keywords)}";
-                    if (content.Length > _maxContentLength)
+                    var content =
+                        $"{video.Author}{channel.Prefix}{video.Title}\n\n{video.Description}\n{video.Url}\n\n{GetHashTags(video.Keywords)}";
+                    if (content.Length > MaxContentLength)
                     {
                         // Too long. Start by removing description
-                        content = $"{video.Author}{_config.Prefix}{video.Title}\n{video.Url}\n\n{GetHashTags(video.Keywords)}";
+                        content =
+                            $"{video.Author}{channel.Prefix}{video.Title}\n{video.Url}\n\n{GetHashTags(video.Keywords)}";
                     }
-                    if (content.Length > _maxContentLength)
+
+                    if (content.Length > MaxContentLength)
                     {
                         // still too long; remove tags + cut the end
-                        content = $"{video.Author}{_config.Prefix}{video.Title}\n\n{video.Url}";
+                        content = $"{video.Author}{channel.Prefix}{video.Title}\n\n{video.Url}";
                     }
-                    if (content.Length > _maxContentLength)
+
+                    if (content.Length > MaxContentLength)
                     {
-                        content = content[.._maxContentLength];
+                        content = content[..MaxContentLength];
                     }
 
                     var status = await _toot.SendToot(_config.Instance, _config.AccessToken, content);
-                    _logger.LogDebug("tooted toot '{title}' with {chars} chars. Id:{id}", video.Title, content?.Length, status?.Id);
+                    _logger.LogDebug("tooted toot '{title}' with {chars} chars. Id:{id}", video.Title, content?.Length,
+                        status?.Id);
                     if (status != null)
                     {
                         await _database.Add(new TubeState
@@ -86,17 +95,19 @@ namespace YouToot
                             MastodonId = status.Id,
                             Published = video.UploadDate.UtcDateTime,
                             Tooted = DateTime.UtcNow,
-                            YouTubeId = video.Id
+                            YouTubeId = video.Id,
+                            YouTubeChannel = channel.Url
                         });
                     }
                     else
                     {
-                        _logger.LogWarning("unable to toot video '{}title' ('{id}')", video.Title, video.Id);
+                        _logger.LogWarning("unable to toot video '{title}' ('{id}')", video.Title, video.Id);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send toot for video '{id}'|'{title}'. Ignoring", video.Id, video.Title);
+                    _logger.LogError(ex, "Failed to send toot for video '{id}'|'{title}'. Ignoring", video.Id,
+                        video.Title);
                 }
             }
         }

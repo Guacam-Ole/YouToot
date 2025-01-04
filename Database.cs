@@ -1,5 +1,4 @@
 ﻿using LiteDB.Async;
-
 using Microsoft.Extensions.Logging;
 
 namespace YouToot
@@ -24,11 +23,11 @@ namespace YouToot
             _logger.LogDebug("Emptied Collection");
         }
 
-        public async Task<IEnumerable<TubeState>?> GetSentToots()
+        public async Task<IEnumerable<TubeState>?> GetSentTootsForChannel(string channel)
         {
             var states = _liteDb.GetCollection<TubeState>();
             if (await states.CountAsync() == 0) return null;
-            return await states.FindAllAsync();
+            return await states.FindAsync(q => q.YouTubeChannel == channel);
         }
 
         public async Task Add(TubeState state)
@@ -38,10 +37,10 @@ namespace YouToot
             _logger.LogDebug("Added state");
         }
 
-        public async Task RemoveOlderThan(DateTime maxAge)
+        public async Task RemoveOlderThan(string channelUrl, DateTime maxAge)
         {
             var states = _liteDb.GetCollection<TubeState>();
-            var count = await states.DeleteManyAsync(q => q.Tooted < maxAge);
+            var count = await states.DeleteManyAsync(q => q.YouTubeChannel == channelUrl && q.Tooted < maxAge);
             _logger.LogDebug("Removed {count} old entries", count);
         }
     }
