@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YouToot", "YouToot.csproj", "{260F1746-FFCD-4103-A205-E2C308C57E31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YouToot", ".\YouToot\YouToot.csproj", "{260F1746-FFCD-4103-A205-E2C308C57E31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeExplode", ".\YoutubeExplode\YoutubeExplode\YoutubeExplode.csproj", "{6E69D7CD-F1E2-4ABA-8623-3155632797EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{260F1746-FFCD-4103-A205-E2C308C57E31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{260F1746-FFCD-4103-A205-E2C308C57E31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{260F1746-FFCD-4103-A205-E2C308C57E31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E69D7CD-F1E2-4ABA-8623-3155632797EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E69D7CD-F1E2-4ABA-8623-3155632797EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E69D7CD-F1E2-4ABA-8623-3155632797EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E69D7CD-F1E2-4ABA-8623-3155632797EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
