@@ -18,7 +18,6 @@ namespace YouToot
         private readonly Toot _toot;
         private readonly Config _config;
 
-
         public Service(ILogger<Service> logger, Tube tube, Database database, Toot toot)
         {
             _logger = logger;
@@ -31,14 +30,14 @@ namespace YouToot
 
         public async Task TootNewVIdeos()
         {
-            var sentToots =await _database.GetSentToots();
-            if (sentToots== null || !sentToots.Any())
+            var sentToots = await _database.GetSentToots();
+            if (sentToots == null || !sentToots.Any())
             {
                 await TootLastVideos(1);  // First run. Toot the latest video
             }
             else
             {
-                await TootVideoSinceId(sentToots.Select(q=>q.YouTubeId).ToList());
+                await TootVideoSinceId(sentToots.Select(q => q.YouTubeId).ToList());
             }
             await _database.RemoveOlderThan(DateTime.Now.AddMonths(-_config.MaxAgeMonths));
         }
@@ -77,8 +76,9 @@ namespace YouToot
                     {
                         content = content[.._maxContentLength];
                     }
-                
+
                     var status = await _toot.SendToot(_config.Instance, _config.AccessToken, content);
+                    _logger.LogDebug("tooted toot '{title}' with {chars} chars. Id:{id}", video.Title, content?.Length, status?.Id);
                     if (status != null)
                     {
                         await _database.Add(new TubeState

@@ -17,11 +17,8 @@ namespace YouToot
             _logger = logger;
         }
 
-        private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, List<string> sinceIds, int? maxNumberOfVideos)
+        private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, List<string>? sinceIds, int? maxNumberOfVideos)
         {
-
-            _logger.LogDebug("Getting Videos from channel '{url}'. Max number: '{max}', since id:'{id}'", channelUrl, maxNumberOfVideos, sinceIds);
-
             int itemCount = 0;
             var ytChannel = await _youtubeClient.Channels.GetByHandleAsync(channelUrl);
             var videos = new List<PlaylistVideo>();
@@ -39,13 +36,13 @@ namespace YouToot
             return videos;
         }
 
-
-        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(string channelUrl, List<string> sinceId, int? maxNumberOfVideos)
+        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(string channelUrl, List<string>? sinceId, int? maxNumberOfVideos)
         {
             try
             {
                 var videos = new List<YoutubeExplode.Videos.Video>();
                 var playlistVideos = await GetVideosFromChannel(channelUrl, sinceId, maxNumberOfVideos);
+                _logger.LogDebug("retrieved {count} videos from channel '{url}' since '{since}'", playlistVideos.Count, channelUrl, sinceId);
                 foreach (var video in playlistVideos)
                 {
                     videos.Add(await _youtubeClient.Videos.GetAsync(video.Id));
@@ -59,8 +56,4 @@ namespace YouToot
             }
         }
     }
-
-
-
-    
 }
