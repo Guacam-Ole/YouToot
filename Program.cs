@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NReco.Logging.File;
 
 namespace YouToot;
 
@@ -17,7 +18,7 @@ public class Program
             var service = provider.GetRequiredService<Service>();
 
             Console.WriteLine("YouToot started");
-            await service.TootNewVIdeos();
+            await service.TootNewVideos();
         }
         catch (Exception ex)
         {

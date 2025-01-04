@@ -38,22 +38,32 @@ namespace YouToot
 
         public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(Config.Channel channel, List<string>? sinceId, int? maxNumberOfVideos)
         {
-            try
+            int retryCount = 5;
+
+            while (retryCount > 0)
             {
-                var videos = new List<YoutubeExplode.Videos.Video>();
-                var playlistVideos = await GetVideosFromChannel(channel.Url, sinceId, maxNumberOfVideos);
-                _logger.LogDebug("retrieved {count} videos from channel '{url}' since '{since}'", playlistVideos.Count, channel.Url, sinceId);
-                foreach (var video in playlistVideos)
+                try
                 {
-                    videos.Add(await _youtubeClient.Videos.GetAsync(video.Id));
+                    retryCount--;
+                    var videos = new List<YoutubeExplode.Videos.Video>();
+                    var playlistVideos = await GetVideosFromChannel(channel.Url, sinceId, maxNumberOfVideos);
+                    _logger.LogDebug("retrieved {count} videos from channel '{url}' since '{since}'",
+                        playlistVideos.Count, channel.Url, sinceId);
+                    foreach (var video in playlistVideos)
+                    {
+                        videos.Add(await _youtubeClient.Videos.GetAsync(video.Id));
+                    }
+
+                    return videos;
                 }
-                return videos;
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed retrieving Videos. Retries left: {retryCount}");
+                    Thread.Sleep(1000 * 10); // wait a few seconds
+                    retryCount--;
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed retrieving Videos");
-                return new List<YoutubeExplode.Videos.Video>();
-            }
+            return new List<YoutubeExplode.Videos.Video>();
         }
     }
 }

@@ -27,9 +27,9 @@ namespace YouToot
                       throw new FileNotFoundException("cannot read config");
         }
 
-        public async Task TootNewVIdeos()
+        public async Task TootNewVideos()
         {
-            foreach (var channel in _config.Channels)
+            foreach (var channel in _config.Channels.OrderByDescending(q=>q.MaxAgeMonths))
             {
                 var sentToots = (await _database.GetSentTootsForChannel(channel.Url))?.ToList();
                 if (sentToots == null || !sentToots.Any())
