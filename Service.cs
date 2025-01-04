@@ -29,20 +29,24 @@ namespace YouToot
 
         public async Task TootNewVideos()
         {
-            foreach (var channel in _config.Channels.OrderByDescending(q=>q.MaxAgeMonths))
+            while (true)
             {
-                var sentToots = (await _database.GetSentTootsForChannel(channel.Url))?.ToList();
-                if (sentToots == null || !sentToots.Any())
+                foreach (var channel in _config.Channels.OrderByDescending(q => q.MaxAgeMonths))
                 {
-                    _logger.LogWarning("Found no configs for '{url}'. Sending last one", channel.Url);
-                    await TootLastVideos(channel, 1); // First run. Toot the latest video
-                }
-                else
-                {
-                    await TootVideoSinceId(channel, sentToots.Select(q => q.YouTubeId).ToList());
-                }
+                    var sentToots = (await _database.GetSentTootsForChannel(channel.Url))?.ToList();
+                    if (sentToots == null || !sentToots.Any())
+                    {
+                        _logger.LogWarning("Found no configs for '{url}'. Sending last one", channel.Url);
+                        await TootLastVideos(channel, 1); // First run. Toot the latest video
+                    }
+                    else
+                    {
+                        await TootVideoSinceId(channel, sentToots.Select(q => q.YouTubeId).ToList());
+                    }
 
-                await _database.RemoveOlderThan(channel.Url, DateTime.Now.AddMonths(-channel.MaxAgeMonths));
+                    await _database.RemoveOlderThan(channel.Url, DateTime.Now.AddMonths(-channel.MaxAgeMonths));
+                }
+                Thread.Sleep(TimeSpan.FromMinutes(5));
             }
         }
 
