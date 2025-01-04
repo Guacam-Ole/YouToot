@@ -41,6 +41,7 @@ namespace YouToot
         {
             var states = _liteDb.GetCollection<TubeState>();
             var count = await states.DeleteManyAsync(q => q.YouTubeChannel == channelUrl && q.Tooted < maxAge);
+            if (count ==0) return;
             _logger.LogDebug("Removed {count} old entries", count);
         }
     }

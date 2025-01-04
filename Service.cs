@@ -64,6 +64,7 @@ namespace YouToot
 
         private async Task TootVideos(Config.Channel channel, List<Video> videos)
         {
+            if (videos.Count ==0) return;
             _logger.LogDebug("tooting {count} videos", videos.Count);
             foreach (var video in videos.OrderBy(q => q.UploadDate))
             {
