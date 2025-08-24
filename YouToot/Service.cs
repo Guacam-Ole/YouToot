@@ -69,27 +69,32 @@ namespace YouToot
             {
                 try
                 {
+                    var hashtags = GetHashTags(video.Keywords);
                     var content =
-                        $"{video.Author}{channel.Prefix}{video.Title}\n\n{video.Description}\n{video.Url}\n\n{GetHashTags(video.Keywords)}";
+                        $"{channel.Prefix}{video.Title}\n\n{video.Description}\n{video.Url}\n\n{hashtags}";
+                    
+                    
                     if (content.Length > MaxContentLength)
                     {
-                        // Too long. Start by removing description
-                        content =
-                            $"{video.Author}{channel.Prefix}{video.Title}\n{video.Url}\n\n{GetHashTags(video.Keywords)}";
+                        // Too long. Shorten the description:
+                        var lengthWithOutDescription = content.Length - video.Description.Length;
+                        if (lengthWithOutDescription > MaxContentLength)
+                        {
+                            content = $"{channel.Prefix}{video.Title}\n\n{video.Url}\n{hashtags}";     
+                        }
+                        else
+                        {
+                            var maxDescriptionLength = MaxContentLength - lengthWithOutDescription;
+                            content=$"{channel.Prefix}{video.Title}\n\n{video.Description[..maxDescriptionLength]} \n\n {video.Url}\n{hashtags}";
+                        }
                     }
 
-                    if (content.Length > MaxContentLength)
+                    // Remove HashTags until length ok
+                    while (content.Length>MaxContentLength)
                     {
-                        // still too long; remove tags + cut the end
-                        content = $"{channel.Prefix}{video.Title}\n\n{video.Url}";
+                        content = content[..content.LastIndexOf(' ')];
                     }
-
-                    if (content.Length > MaxContentLength)
-                    {
-                        content = content[..MaxContentLength];
-                    }
-
-                    var status = await _toot.SendToot(_config.Instance!, _config.AccessToken!, content);
+                    var status =await _toot.SendToot(_config.Instance!, _config.AccessToken!, content);
                    
                     if (status != null)
                     {
@@ -119,7 +124,7 @@ namespace YouToot
 
         private static string GetHashTags(IReadOnlyList<string> tagList)
         {
-            return string.Join(" ", tagList.Distinct().Select(q => "#" + Regex.Replace(q, "[^A-Za-z0-9äöüÄÖßÜ_]", "")));
+             return string.Join(" ", tagList.Where(tag=>!tag.Contains("beans", StringComparison.CurrentCultureIgnoreCase) && !tag.Contains("rbtv", StringComparison.CurrentCultureIgnoreCase)).Select(q => "#" + Regex.Replace(q, "[^A-Za-z0-9äöüÄÖßÜ_]", "")));
         }
     }
 }
