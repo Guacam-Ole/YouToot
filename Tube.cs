@@ -7,9 +7,8 @@ namespace YouToot
 {
     public class Tube
     {
-        private const string _ytUrl = "https://youtube.com/";
         private readonly ILogger<Tube> _logger;
-        private YoutubeClient _youtubeClient;
+        private readonly YoutubeClient _youtubeClient;
 
         public Tube(ILogger<Tube> logger)
         {
@@ -19,7 +18,7 @@ namespace YouToot
 
         private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, List<string>? sinceIds, int? maxNumberOfVideos)
         {
-            int itemCount = 0;
+            var itemCount = 0;
             var ytChannel = await _youtubeClient.Channels.GetByHandleAsync(channelUrl);
             var videos = new List<PlaylistVideo>();
 
@@ -32,13 +31,12 @@ namespace YouToot
                 if (maxNumberOfVideos != null && itemCount >= maxNumberOfVideos) return videos;
             }
 
-            if (sinceIds != null) throw new ArgumentException("No video with that Id exists. To prevent accidental spamming no videos will be tooted");
-            return videos;
+            return sinceIds != null ? throw new ArgumentException("No video with that Id exists. To prevent accidental spamming no videos will be tooted") : videos;
         }
 
         public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(Config.Channel channel, List<string>? sinceId, int? maxNumberOfVideos)
         {
-            int retryCount = 5;
+            var retryCount = 5;
 
             while (retryCount > 0)
             {
@@ -47,7 +45,7 @@ namespace YouToot
                     retryCount--;
                     var videos = new List<YoutubeExplode.Videos.Video>();
                     var playlistVideos = await GetVideosFromChannel(channel.Url, sinceId, maxNumberOfVideos);
-                    _logger.LogDebug("retrieved {count} videos from channel '{url}' since '{since}'",
+                    _logger.LogDebug("retrieved {Count} videos from channel '{Url}' since '{Since}'",
                         playlistVideos.Count, channel.Url, sinceId);
                     foreach (var video in playlistVideos)
                     {
@@ -62,7 +60,7 @@ namespace YouToot
                     Thread.Sleep(1000 * 30); // wait a few seconds
                 }
             }
-            return new List<YoutubeExplode.Videos.Video>();
+            return [];
         }
     }
 }

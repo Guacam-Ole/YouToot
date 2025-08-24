@@ -5,16 +5,16 @@ namespace YouToot
 {
     public class Database
     {
-        private const string _datebaseFilename = "youtoot.db";
+        private const string DatebaseFilename = "youtoot.db";
 
         public Database(ILogger<Database> logger)
         {
-            _liteDb = new LiteDatabaseAsync(_datebaseFilename);
+            _liteDb = new LiteDatabaseAsync(DatebaseFilename);
             _logger = logger;
         }
 
         private readonly ILogger<Database> _logger;
-        private LiteDatabaseAsync _liteDb;
+        private readonly LiteDatabaseAsync _liteDb;
 
         public async Task Empty()
         {
@@ -23,7 +23,7 @@ namespace YouToot
             _logger.LogDebug("Emptied Collection");
         }
 
-        public async Task<IEnumerable<TubeState>?> GetSentTootsForChannel(string channel)
+        public async Task<IEnumerable<TubeState>?> GetSentTootsForChannel(string? channel)
         {
             var states = _liteDb.GetCollection<TubeState>();
             if (await states.CountAsync() == 0) return null;
@@ -37,7 +37,7 @@ namespace YouToot
             _logger.LogDebug("Added state");
         }
 
-        public async Task RemoveOlderThan(string channelUrl, DateTime maxAge)
+        public async Task RemoveOlderThan(string? channelUrl, DateTime maxAge)
         {
             var states = _liteDb.GetCollection<TubeState>();
             var count = await states.DeleteManyAsync(q => q.YouTubeChannel == channelUrl && q.Tooted < maxAge);

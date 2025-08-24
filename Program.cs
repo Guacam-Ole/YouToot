@@ -6,7 +6,7 @@ namespace YouToot;
 
 public class Program
 {
-    private static async Task Main(string[] args)
+    private static async Task Main()
     {
         var assembly = System.Reflection.Assembly.GetExecutingAssembly();
         var attr = Attribute.GetCustomAttribute(assembly, typeof(BuildDateTimeAttribute)) as BuildDateTimeAttribute;

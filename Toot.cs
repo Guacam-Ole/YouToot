@@ -23,9 +23,8 @@ namespace YouToot
                 return null;
             }
 
-            Status? status;
-            status = await client.PublishStatus(content, Visibility.Public);
-            _logger.LogDebug("Toot '{tootid}' sent with {chars} Chars", status.Id, content.Length);
+            var status = await client.PublishStatus(content, Visibility.Public);
+            _logger.LogDebug("Toot '{TootId}' sent with {chars} Chars", status.Id, content.Length);
             return status;
         }
     }

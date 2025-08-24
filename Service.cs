@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Channels;
 using YoutubeExplode.Videos;
 
 namespace YouToot
@@ -34,7 +33,7 @@ namespace YouToot
                 foreach (var channel in _config.Channels.OrderByDescending(q => q.MaxAgeMonths))
                 {
                     var sentToots = (await _database.GetSentTootsForChannel(channel.Url))?.ToList();
-                    if (sentToots == null || !sentToots.Any())
+                    if (sentToots == null || sentToots.Count == 0)
                     {
                         _logger.LogWarning("Found no configs for '{url}'. Sending last one", channel.Url);
                         await TootLastVideos(channel, 1); // First run. Toot the latest video
@@ -90,28 +89,29 @@ namespace YouToot
                         content = content[..MaxContentLength];
                     }
 
-                    var status = await _toot.SendToot(_config.Instance, _config.AccessToken, content);
-                    _logger.LogDebug("tooted toot '{title}' with {chars} chars. Id:{id}", video.Title, content?.Length,
-                        status?.Id);
+                    var status = await _toot.SendToot(_config.Instance!, _config.AccessToken!, content);
+                   
                     if (status != null)
                     {
+                        _logger.LogDebug("tooted toot '{Title}' with {CharCount} chars. Id:{Id}", video.Title, content.Length,
+                            status.Id);
                         await _database.Add(new TubeState
                         {
                             MastodonId = status.Id,
                             Published = video.UploadDate.UtcDateTime,
                             Tooted = DateTime.UtcNow,
                             YouTubeId = video.Id,
-                            YouTubeChannel = channel.Url
+                            YouTubeChannel = channel.Url!
                         });
                     }
                     else
                     {
-                        _logger.LogWarning("unable to toot video '{title}' ('{id}')", video.Title, video.Id);
+                        _logger.LogWarning("unable to toot video '{Title}' ('{Id}')", video.Title, video.Id);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send toot for video '{id}'|'{title}'. Ignoring", video.Id,
+                    _logger.LogError(ex, "Failed to send toot for video '{Id}'|'{Title}'. Ignoring", video.Id,
                         video.Title);
                 }
             }

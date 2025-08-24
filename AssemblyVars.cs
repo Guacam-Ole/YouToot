@@ -3,7 +3,7 @@
     [AttributeUsage(AttributeTargets.Assembly)]
     public class BuildDateTimeAttribute : Attribute
     {
-        public string Date { get; set; }
+        public string Date { get; }
 
         public BuildDateTimeAttribute(string date)
         {
