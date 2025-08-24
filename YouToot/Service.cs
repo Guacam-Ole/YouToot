@@ -81,7 +81,7 @@ namespace YouToot
                     if (content.Length > MaxContentLength)
                     {
                         // still too long; remove tags + cut the end
-                        content = $"{video.Author}{channel.Prefix}{video.Title}\n\n{video.Url}";
+                        content = $"{channel.Prefix}{video.Title}\n\n{video.Url}";
                     }
 
                     if (content.Length > MaxContentLength)
