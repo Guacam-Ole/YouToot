@@ -69,7 +69,16 @@ namespace YouToot
             {
                 try
                 {
-                    var hashtags = GetHashTags(video.Keywords);
+                    var keywords = video.Keywords.ToList();
+                    if (channel.RemoveHashtags != null)
+                    {
+                        keywords.RemoveAll(tag =>
+                            channel.RemoveHashtags.Any(rem =>
+                                tag.Contains(rem, StringComparison.CurrentCultureIgnoreCase)));
+                    }
+                    
+                    var hashtags = GetHashTags(keywords);
+              
                     var content =
                         $"{channel.Prefix}{video.Title}\n\n{video.Description}\n{video.Url}\n\n{hashtags}";
                     

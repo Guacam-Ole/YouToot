@@ -16,6 +16,7 @@ namespace YouToot
             public int MaxAgeMonths { get; set; }
             public required string Url { get; set; }
             public required string Prefix { get; set; }
+            public string[]? RemoveHashtags { get; set; }
         }
     }
 }
