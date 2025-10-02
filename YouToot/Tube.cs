@@ -56,7 +56,7 @@ namespace YouToot
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed retrieving Videos. Retries left: {retryCount}");
+                    _logger.LogError(ex, "Failed retrieving Videos from Channel '{Channel}' since '{Since}'. Retries left: {retryCount}", channel.Url, sinceId, retryCount);
                     Thread.Sleep(1000 * 30); // wait a few seconds
                 }
             }
