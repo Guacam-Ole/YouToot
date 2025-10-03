@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-
+﻿using System.Net;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 using YoutubeExplode;
+using YoutubeExplode.Exceptions;
 using YoutubeExplode.Playlists;
 
 namespace YouToot
@@ -10,13 +12,23 @@ namespace YouToot
         private readonly ILogger<Tube> _logger;
         private readonly YoutubeClient _youtubeClient;
 
-        public Tube(ILogger<Tube> logger)
+        public Tube(Config config, ILogger<Tube> logger)
         {
-            _youtubeClient = new YoutubeClient();
+            if (config.Cookie != null)
+            {
+                _youtubeClient = new YoutubeClient(new List<Cookie>
+                    { new("SOCS", config.Cookie) { Domain = "youtube.com" } });
+            }
+            else
+            {
+                _youtubeClient = new YoutubeClient();
+            }
+
             _logger = logger;
         }
 
-        private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, List<string>? sinceIds, int? maxNumberOfVideos)
+        private async Task<List<PlaylistVideo>> GetVideosFromChannel(string channelUrl, List<string>? sinceIds,
+            int? maxNumberOfVideos)
         {
             var itemCount = 0;
             var ytChannel = await _youtubeClient.Channels.GetByHandleAsync(channelUrl);
@@ -26,15 +38,20 @@ namespace YouToot
             {
                 if (sinceIds != null && sinceIds.Contains(upload.Id)) return videos;
                 videos.Add(upload);
-                _logger.LogDebug("Added '{title}' with id {id} to list of Videos [{duration}]", upload.Title, upload.Id, upload.Duration);
+                _logger.LogDebug("Added '{title}' with id {id} to list of Videos [{duration}]", upload.Title, upload.Id,
+                    upload.Duration);
                 itemCount++;
                 if (maxNumberOfVideos != null && itemCount >= maxNumberOfVideos) return videos;
             }
 
-            return sinceIds != null ? throw new ArgumentException("No video with that Id exists. To prevent accidental spamming no videos will be tooted") : videos;
+            return sinceIds != null
+                ? throw new ArgumentException(
+                    "No video with that Id exists. To prevent accidental spamming no videos will be tooted")
+                : videos;
         }
 
-        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(Config.Channel channel, List<string>? sinceId, int? maxNumberOfVideos)
+        public async Task<List<YoutubeExplode.Videos.Video>> GetVideos(Config.Channel channel, List<string>? sinceId,
+            int? maxNumberOfVideos)
         {
             var retryCount = 5;
 
@@ -54,12 +71,18 @@ namespace YouToot
 
                     return videos;
                 }
+           
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed retrieving Videos. Retries left: {retryCount}");
+                    if (ex.Message.Contains("Channel page is broken"))
+                    {
+                        _logger.LogCritical("Please check if Cookie expired");
+                    }
+                    _logger.LogError(ex, "Failed retrieving Videos. Retries left: {retryCount}", retryCount);
                     Thread.Sleep(1000 * 30); // wait a few seconds
                 }
             }
+
             return [];
         }
     }

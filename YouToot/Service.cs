@@ -15,15 +15,13 @@ namespace YouToot
         private readonly Toot _toot;
         private readonly Config _config;
 
-        public Service(ILogger<Service> logger, Tube tube, Database database, Toot toot)
+        public Service(ILogger<Service> logger, Tube tube, Database database, Toot toot, Config config)
         {
             _logger = logger;
             _tube = tube;
             _database = database;
             _toot = toot;
-            var config = File.ReadAllText("./config.json");
-            _config = JsonConvert.DeserializeObject<Config>(config) ??
-                      throw new FileNotFoundException("cannot read config");
+            _config = config;
         }
 
         public async Task TootNewVideos()

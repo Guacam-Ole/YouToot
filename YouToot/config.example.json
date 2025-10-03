@@ -1,7 +1,9 @@
 {  
   "instance": "mastodon.social",
   "accesstoken": "<token>",
-  
+  "cookie": "" // expires every 13 months and has to reselected by simply visiting youtube.com. (cookie is called "SOC")
+
+
   "Channels": [
     {
       "maxagemonths": "10",

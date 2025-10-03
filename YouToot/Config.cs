@@ -9,6 +9,7 @@ namespace YouToot
         public string? Instance { get; set; }
         public string? AccessToken { get; set; }
         public List<Channel> Channels { get; set; } = []; 
+        public string? Cookie { get; set; } // Soc-Cookie
 
         
         public class Channel

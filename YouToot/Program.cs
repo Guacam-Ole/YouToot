@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -15,7 +16,7 @@ public class Program
         var assembly = System.Reflection.Assembly.GetExecutingAssembly();
         var attr = Attribute.GetCustomAttribute(assembly, typeof(BuildDateTimeAttribute)) as BuildDateTimeAttribute;
         Console.WriteLine("Starting up YouToot Build " + attr?.Date);
-        
+
         try
         {
             var provider = AddServices();
@@ -30,12 +31,12 @@ public class Program
         }
     }
 
-   
+
     private static ServiceProvider AddServices()
     {
         var services = new ServiceCollection();
 
-      
+
         services.AddLogging(cfg => cfg.SetMinimumLevel(LogLevel.Debug));
         services.AddSerilog(cfg =>
         {
@@ -67,10 +68,10 @@ public class Program
         services.AddScoped<Tube>();
         services.AddScoped<Toot>();
         services.AddScoped<Service>();
+        services.AddSingleton(JsonConvert.DeserializeObject<Config>(File.ReadAllText("./config.json")) ??
+                                      throw new FileNotFoundException("cannot read config"));
 
         var provider = services.BuildServiceProvider();
         return provider;
     }
-
-   
 }
