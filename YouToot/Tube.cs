@@ -78,7 +78,7 @@ namespace YouToot
                     {
                         _logger.LogCritical("Please check if Cookie expired");
                     }
-                    _logger.LogError(ex, "Failed retrieving Videos. Retries left: {retryCount}", retryCount);
+                    _logger.LogError(ex, "Failed retrieving Videos from '{Url}'. Retries left: {retryCount}", channel.Url, retryCount);
                     Thread.Sleep(1000 * 30); // wait a few seconds
                 }
             }
