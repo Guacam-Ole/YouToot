@@ -71,18 +71,22 @@ namespace YouToot
 
                     return videos;
                 }
-           
+
                 catch (Exception ex)
                 {
                     if (ex.Message.Contains("Channel page is broken"))
                     {
                         _logger.LogCritical("Please check if Cookie expired");
                     }
-                    _logger.LogError(ex, "Failed retrieving Videos from '{Url}'. Retries left: {retryCount}", channel.Url, retryCount);
-                    Thread.Sleep(1000 * 30); // wait a few seconds
+
+                    _logger.LogWarning(ex, "Failed retrieving Videos from '{Url}'. Retries left: {retryCount}",
+                        channel.Url, retryCount);
+
+                    Thread.Sleep(1000 * 30 * (5 - retryCount)); // wait for a moment
                 }
             }
 
+            _logger.LogError("Failed retrieving Videos from '{Url}'", channel.Url);
             return [];
         }
     }
